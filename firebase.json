@@ -1,0 +1,30 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "video-audio-booth",
+          "appId": "1:475337205463:android:3cb80090bc3fd4327bb292",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "video-audio-booth",
+          "appId": "1:475337205463:ios:267093d28411783f7bb292",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "video-audio-booth",
+          "configurations": {
+            "android": "1:475337205463:android:3cb80090bc3fd4327bb292",
+            "ios": "1:475337205463:ios:267093d28411783f7bb292"
+          }
+        }
+      }
+    }
+  }
+}

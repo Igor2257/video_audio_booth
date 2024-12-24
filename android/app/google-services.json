@@ -1,0 +1,98 @@
+{
+  "project_info": {
+    "project_number": "475337205463",
+    "project_id": "video-audio-booth",
+    "storage_bucket": "video-audio-booth.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:475337205463:android:3cb80090bc3fd4327bb292",
+        "android_client_info": {
+          "package_name": "com.spacecompany"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "475337205463-1higtlcr0qtfqn8rp8kek7ogc948q5g4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.spacecompany",
+            "certificate_hash": "2f68e63a9cb76cc0ad4726d7371e30967116c248"
+          }
+        },
+        {
+          "client_id": "475337205463-t83b2s3lvuscku6rodppe6re32pi98sm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6afbLQw6QI0nV__2ACY-pmuA70bI3Fu0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "475337205463-t83b2s3lvuscku6rodppe6re32pi98sm.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "475337205463-9foma0k5nth5osa63rdtfpbkb2ma10e6.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.spacecompany.videoAudioBooth"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:475337205463:android:d7430bddc8bd13457bb292",
+        "android_client_info": {
+          "package_name": "com.spacecompany.video_audio_booth"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "475337205463-frdirk194r47t3eglippvgh01pi22alo.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.spacecompany.video_audio_booth",
+            "certificate_hash": "2f68e63a9cb76cc0ad4726d7371e30967116c248"
+          }
+        },
+        {
+          "client_id": "475337205463-t83b2s3lvuscku6rodppe6re32pi98sm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6afbLQw6QI0nV__2ACY-pmuA70bI3Fu0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "475337205463-t83b2s3lvuscku6rodppe6re32pi98sm.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "475337205463-9foma0k5nth5osa63rdtfpbkb2ma10e6.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.spacecompany.videoAudioBooth"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

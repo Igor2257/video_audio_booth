@@ -1,0 +1,1 @@
+enum RegisterOrSingIn{register,signIn}
