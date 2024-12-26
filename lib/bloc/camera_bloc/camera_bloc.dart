@@ -8,6 +8,7 @@ import 'package:video_audio_booth/use_case/camera_use_case/camera_use_case.dart'
 import 'package:video_audio_booth/use_case/camera_use_case/camera_use_case_impl.dart';
 import 'package:video_audio_booth/use_case/entity/result.dart';
 import 'package:video_audio_booth/use_case/entity/result_from_chat_gpt.dart';
+import 'package:video_audio_booth/utils/core/constants.dart';
 
 part 'camera_event.dart';
 part 'camera_state.dart';
@@ -23,22 +24,10 @@ class CameraBloc extends Bloc<CameraEvent, CameraState> {
   final CameraUseCase _cameraUseCase = CameraUseCaseImpl.instance;
 
   FutureOr<void> _onLoadData(LoadData event, Emitter<CameraState> emit) async {
-    // final frontCameraResult = await _cameraUseCase.getFrontCamera();
-    // print("frontCameraResult $frontCameraResult");
-    // if (frontCameraResult.error != null) {
-    //   emit(state.copyWith(error: frontCameraResult.error));
-    //   return;
-    // } else {
-    //   emit(state.copyWith(frontController: frontCameraResult.data));
-    // }
-    // final backCameraResult = await _cameraUseCase.getBackCamera();
-    // print("backCameraResult $backCameraResult");
-    // if (backCameraResult.error != null) {
-    //   emit(state.copyWith(error: backCameraResult.error));
-    //   return;
-    // } else {
-    //   emit(state.copyWith(backController: backCameraResult.data));
-    // }
+    try {
+      bool success = await channel.invokeMethod("startSession");
+      print("success $success");
+    } catch (e) {}
   }
 
   @override
@@ -69,8 +58,8 @@ class CameraBloc extends Bloc<CameraEvent, CameraState> {
     final data = await _cameraUseCase.getAudioText();
     print("data $data");
     if (data != null) {
-      final result = await _cameraUseCase.getAnswerFromChatGPTFromQuery(data);
-      //final result = Result.success("Data");
+      //final result = await _cameraUseCase.getAnswerFromChatGPTFromQuery(data);
+      final result = Result.success("Data");
       if (!getIt.isRegistered<ResultFromChatGpt>()) {
         getIt.registerSingleton<ResultFromChatGpt>(
           ResultFromChatGpt(),

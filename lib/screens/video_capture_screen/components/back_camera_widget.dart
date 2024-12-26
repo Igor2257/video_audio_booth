@@ -10,10 +10,16 @@ class BackCameraWidget extends StatelessWidget {
         return state.backController;
       },
       builder: (context, backController) {
-        if (backController == null) {
-          return const SizedBox();
-        }
-        return CameraPreview(backController);
+        const String viewType = '<camera_view>';
+        // Pass parameters to the platform side.
+        final Map<String, dynamic> creationParams = <String, dynamic>{};
+        return AndroidView(
+          viewType: viewType,
+          layoutDirection: TextDirection.ltr,
+          creationParams: creationParams,
+          creationParamsCodec: const StandardMessageCodec(),
+        );
+        //return CameraPreview(backController);
       },
     );
   }

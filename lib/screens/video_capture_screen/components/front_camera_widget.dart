@@ -11,13 +11,14 @@ class FrontCameraWidget extends StatelessWidget {
         return state.frontController;
       },
       builder: (context, frontController) {
-        if (frontController == null) {
-          return const SizedBox();
-        }
-        return Container(color: Colors.red,
-          width: size.width / 3,
-          height: size.height / 4,
-          child: CameraPreview(frontController),
+        const String viewType = '<front_camera_view>';
+        // Pass parameters to the platform side.
+        final Map<String, dynamic> creationParams = <String, dynamic>{};
+        return AndroidView(
+          viewType: viewType,
+          layoutDirection: TextDirection.ltr,
+          creationParams: creationParams,
+          creationParamsCodec: const StandardMessageCodec(),
         );
       },
     );

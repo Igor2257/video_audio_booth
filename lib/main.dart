@@ -5,6 +5,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get_it/get_it.dart';
 import 'package:video_audio_booth/bloc/app_bloc/app_bloc.dart';
 import 'package:video_audio_booth/bloc/login_bloc/login_bloc.dart';
+import 'package:video_audio_booth/bloc/text_classification_bloc/text_classification_bloc.dart'
+    as tcb;
 import 'package:video_audio_booth/firebase_options.dart';
 import 'package:video_audio_booth/utils/navigation/app_routes.dart';
 
@@ -28,6 +30,10 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(
           create: (context) => AppBloc(),
+        ),
+        BlocProvider(
+          create: (context) => tcb.TextClassificationBloc()
+            ..add(tcb.LoadData()),
         ),
         BlocProvider(
           create: (context) => LoginBloc()..add(LoadData()),

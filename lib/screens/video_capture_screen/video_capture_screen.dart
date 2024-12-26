@@ -1,5 +1,6 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -31,12 +32,13 @@ class VideoCaptureScreen extends StatelessWidget {
             padding: EdgeInsets.all(16.0),
             child: Stack(
               children: [
-                BackCameraWidget(),
                 Positioned(
                   right: 16.0,
                   top: 16.0,
                   child: FrontCameraWidget(),
                 ),
+                BackCameraWidget(),
+
                 StartPauseButtonWidget(),
               ],
             ),
