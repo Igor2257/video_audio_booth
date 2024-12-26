@@ -1,9 +1,9 @@
-import 'package:chat_bubbles/message_bars/message_bar.dart';
-import 'package:flutter/material.dart';
 
+import 'package:flutter/material.dart';
+import 'package:chat_bubbles/chat_bubbles.dart';
 part 'components/chat_bottom_message_bar_widget.dart';
 part 'components/chat_pop_view.dart';
-part 'components/';
+part 'components/chat_bubble_widget.dart';
 part 'components/';
 part 'components/';
 

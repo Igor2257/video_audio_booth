@@ -6,6 +6,7 @@ class ChatBottomMessageBarWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return MessageBar(
       onSend: (_) => print(_),
+      messageBarHintText: "Введіть ваш текст",
     );
   }
 }
