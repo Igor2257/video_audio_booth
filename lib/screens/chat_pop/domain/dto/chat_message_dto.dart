@@ -1,5 +1,5 @@
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:video_audio_booth/screens/chat_pop/domain/dto/hive_type_id.dart';
+import 'package:video_audio_booth/domain/hive/hive_type_id.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 part 'chat_message_dto.freezed.dart';
 part 'chat_message_dto.g.dart';

@@ -3,8 +3,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:video_audio_booth/screens/chat_pop/domain/dto/chat_message_dto.dart';
 import 'package:video_audio_booth/screens/chat_pop/domain/dto/conversation_dto.dart';
 
-late final Box<ChatMessageDto> chatMessages;
-late final Box<ConversationDto> conversations;
+late final Box<ChatMessageDto> chatMessagesBox;
+late final Box<ConversationDto> conversationsBox;
 
 
 class HiveInitialize {
@@ -19,8 +19,8 @@ class HiveInitialize {
       ..registerAdapter(ConversationDtoAdapter());
 
     try {
-      chatMessages = await Hive.openBox<ChatMessageDto>('chat_messages_box');
-      conversations = await Hive.openBox<ConversationDto>('conversations_box');
+      chatMessagesBox = await Hive.openBox<ChatMessageDto>('chat_messages_box');
+      conversationsBox = await Hive.openBox<ConversationDto>('conversations_box');
 
       _initialized = true;
     } catch (e, trace) {
