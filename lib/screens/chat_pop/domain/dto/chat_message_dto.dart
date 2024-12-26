@@ -10,7 +10,6 @@ class ChatMessageDto with _$ChatMessageDto {
   factory ChatMessageDto({
     @HiveField(0) required String id,
     @HiveField(1) required String text,
-    @HiveField(2) @Default(false) bool isTail,
     @HiveField(3) @Default(false) bool isSender,
     @HiveField(4) @Default(false) bool isSent,
     @HiveField(5) required String conversationId,

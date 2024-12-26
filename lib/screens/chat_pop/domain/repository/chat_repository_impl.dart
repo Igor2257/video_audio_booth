@@ -29,7 +29,6 @@ class ChatRepositoryImpl implements ChatRepository {
       return Result.success(ChatMessageEntity(
           id: const Uuid().v1(),
           text: decodedMessage,
-          isTail: true,
           isSender: false,
           isSent: true,
           conversationId: '',

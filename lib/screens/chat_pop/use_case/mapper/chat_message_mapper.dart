@@ -6,7 +6,6 @@ class ChatMessageMapper {
     return ChatMessageEntity(
       id: chatMessageDto.id,
       text: chatMessageDto.text,
-      isTail: chatMessageDto.isTail,
       isSender: chatMessageDto.isSender,
       isSent: chatMessageDto.isSent,
       conversationId: chatMessageDto.conversationId,
@@ -18,7 +17,6 @@ class ChatMessageMapper {
     return ChatMessageDto(
       id: chatMessageEntity.id,
       text: chatMessageEntity.text,
-      isTail: chatMessageEntity.isTail,
       isSender: chatMessageEntity.isSender,
       isSent: chatMessageEntity.isSent,
       conversationId: chatMessageEntity.conversationId,

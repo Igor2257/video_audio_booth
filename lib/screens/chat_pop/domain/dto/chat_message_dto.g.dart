@@ -19,7 +19,6 @@ class ChatMessageDtoAdapter extends TypeAdapter<ChatMessageDto> {
     return ChatMessageDto(
       id: fields[0] as String,
       text: fields[1] as String,
-      isTail: fields[2] as bool,
       isSender: fields[3] as bool,
       isSent: fields[4] as bool,
       conversationId: fields[5] as String,
@@ -30,13 +29,11 @@ class ChatMessageDtoAdapter extends TypeAdapter<ChatMessageDto> {
   @override
   void write(BinaryWriter writer, ChatMessageDto obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
       ..write(obj.text)
-      ..writeByte(2)
-      ..write(obj.isTail)
       ..writeByte(3)
       ..write(obj.isSender)
       ..writeByte(4)
@@ -66,7 +63,6 @@ _$ChatMessageDtoImpl _$$ChatMessageDtoImplFromJson(Map<String, dynamic> json) =>
     _$ChatMessageDtoImpl(
       id: json['id'] as String,
       text: json['text'] as String,
-      isTail: json['isTail'] as bool? ?? false,
       isSender: json['isSender'] as bool? ?? false,
       isSent: json['isSent'] as bool? ?? false,
       conversationId: json['conversationId'] as String,
@@ -79,7 +75,6 @@ Map<String, dynamic> _$$ChatMessageDtoImplToJson(
     <String, dynamic>{
       'id': instance.id,
       'text': instance.text,
-      'isTail': instance.isTail,
       'isSender': instance.isSender,
       'isSent': instance.isSent,
       'conversationId': instance.conversationId,

@@ -24,8 +24,6 @@ mixin _$ChatMessageDto {
   String get id => throw _privateConstructorUsedError;
   @HiveField(1)
   String get text => throw _privateConstructorUsedError;
-  @HiveField(2)
-  bool get isTail => throw _privateConstructorUsedError;
   @HiveField(3)
   bool get isSender => throw _privateConstructorUsedError;
   @HiveField(4)
@@ -54,7 +52,6 @@ abstract class $ChatMessageDtoCopyWith<$Res> {
   $Res call(
       {@HiveField(0) String id,
       @HiveField(1) String text,
-      @HiveField(2) bool isTail,
       @HiveField(3) bool isSender,
       @HiveField(4) bool isSent,
       @HiveField(5) String conversationId,
@@ -78,7 +75,6 @@ class _$ChatMessageDtoCopyWithImpl<$Res, $Val extends ChatMessageDto>
   $Res call({
     Object? id = null,
     Object? text = null,
-    Object? isTail = null,
     Object? isSender = null,
     Object? isSent = null,
     Object? conversationId = null,
@@ -93,10 +89,6 @@ class _$ChatMessageDtoCopyWithImpl<$Res, $Val extends ChatMessageDto>
           ? _value.text
           : text // ignore: cast_nullable_to_non_nullable
               as String,
-      isTail: null == isTail
-          ? _value.isTail
-          : isTail // ignore: cast_nullable_to_non_nullable
-              as bool,
       isSender: null == isSender
           ? _value.isSender
           : isSender // ignore: cast_nullable_to_non_nullable
@@ -128,7 +120,6 @@ abstract class _$$ChatMessageDtoImplCopyWith<$Res>
   $Res call(
       {@HiveField(0) String id,
       @HiveField(1) String text,
-      @HiveField(2) bool isTail,
       @HiveField(3) bool isSender,
       @HiveField(4) bool isSent,
       @HiveField(5) String conversationId,
@@ -150,7 +141,6 @@ class __$$ChatMessageDtoImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? text = null,
-    Object? isTail = null,
     Object? isSender = null,
     Object? isSent = null,
     Object? conversationId = null,
@@ -165,10 +155,6 @@ class __$$ChatMessageDtoImplCopyWithImpl<$Res>
           ? _value.text
           : text // ignore: cast_nullable_to_non_nullable
               as String,
-      isTail: null == isTail
-          ? _value.isTail
-          : isTail // ignore: cast_nullable_to_non_nullable
-              as bool,
       isSender: null == isSender
           ? _value.isSender
           : isSender // ignore: cast_nullable_to_non_nullable
@@ -195,7 +181,6 @@ class _$ChatMessageDtoImpl implements _ChatMessageDto {
   _$ChatMessageDtoImpl(
       {@HiveField(0) required this.id,
       @HiveField(1) required this.text,
-      @HiveField(2) this.isTail = false,
       @HiveField(3) this.isSender = false,
       @HiveField(4) this.isSent = false,
       @HiveField(5) required this.conversationId,
@@ -210,10 +195,6 @@ class _$ChatMessageDtoImpl implements _ChatMessageDto {
   @override
   @HiveField(1)
   final String text;
-  @override
-  @JsonKey()
-  @HiveField(2)
-  final bool isTail;
   @override
   @JsonKey()
   @HiveField(3)
@@ -231,7 +212,7 @@ class _$ChatMessageDtoImpl implements _ChatMessageDto {
 
   @override
   String toString() {
-    return 'ChatMessageDto(id: $id, text: $text, isTail: $isTail, isSender: $isSender, isSent: $isSent, conversationId: $conversationId, messageSentDateTime: $messageSentDateTime)';
+    return 'ChatMessageDto(id: $id, text: $text, isSender: $isSender, isSent: $isSent, conversationId: $conversationId, messageSentDateTime: $messageSentDateTime)';
   }
 
   @override
@@ -241,7 +222,6 @@ class _$ChatMessageDtoImpl implements _ChatMessageDto {
             other is _$ChatMessageDtoImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.text, text) || other.text == text) &&
-            (identical(other.isTail, isTail) || other.isTail == isTail) &&
             (identical(other.isSender, isSender) ||
                 other.isSender == isSender) &&
             (identical(other.isSent, isSent) || other.isSent == isSent) &&
@@ -253,8 +233,8 @@ class _$ChatMessageDtoImpl implements _ChatMessageDto {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, text, isTail, isSender,
-      isSent, conversationId, messageSentDateTime);
+  int get hashCode => Object.hash(runtimeType, id, text, isSender, isSent,
+      conversationId, messageSentDateTime);
 
   /// Create a copy of ChatMessageDto
   /// with the given fields replaced by the non-null parameter values.
@@ -277,7 +257,6 @@ abstract class _ChatMessageDto implements ChatMessageDto {
   factory _ChatMessageDto(
           {@HiveField(0) required final String id,
           @HiveField(1) required final String text,
-          @HiveField(2) final bool isTail,
           @HiveField(3) final bool isSender,
           @HiveField(4) final bool isSent,
           @HiveField(5) required final String conversationId,
@@ -293,9 +272,6 @@ abstract class _ChatMessageDto implements ChatMessageDto {
   @override
   @HiveField(1)
   String get text;
-  @override
-  @HiveField(2)
-  bool get isTail;
   @override
   @HiveField(3)
   bool get isSender;

@@ -5,8 +5,12 @@ class ChatPopView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      ChatBottomMessageBarWidget(),
-    ],);
+    return const Column(
+      children: [
+        ChatAppBarWidget(),
+        ChatMessagesListViewWidget(),
+        ChatBottomMessageBarWidget(),
+      ],
+    );
   }
 }
