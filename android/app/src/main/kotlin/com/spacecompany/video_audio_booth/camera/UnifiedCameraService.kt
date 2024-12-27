@@ -10,15 +10,13 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.spacecompany.video_audio_booth.MainActivity
 import io.flutter.plugin.common.MethodChannel
-import java.io.File
-import androidx.camera.core.CameraSelector
+import io.flutter.plugin.common.EventChannel
 
 class UnifiedCameraService(
     private val context: Context,
     private val lifecycleOwner: LifecycleOwner,
     private val cameraPreview: PreviewView,  // Для задней камеры
     private val cameraPreviewFront: PreviewView,  // Для фронтальной камеры
-    private val cameraChannel: MethodChannel // Канал для общения с Flutter
 ) {
 
     private lateinit var cameraProvider: ProcessCameraProvider
@@ -43,10 +41,8 @@ class UnifiedCameraService(
                 cameraSelectorBack,
                 previewBack
             )
-            cameraChannel.invokeMethod("onCameraStatus", "Back camera bound for preview")
         } catch (exc: Exception) {
             exc.printStackTrace()
-            cameraChannel.invokeMethod("onCameraStatus", "Back camera binding failed: ${exc.message}")
         }
     }
 
@@ -65,10 +61,8 @@ class UnifiedCameraService(
                 cameraSelectorFront,
                 previewFront
             )
-            cameraChannel.invokeMethod("onCameraStatus", "Front camera bound for preview")
         } catch (exc: Exception) {
             exc.printStackTrace()
-            cameraChannel.invokeMethod("onCameraStatus", "Front camera binding failed: ${exc.message}")
         }
     }
 
@@ -99,6 +93,6 @@ class UnifiedCameraService(
     fun stopCamera() {
         // Останавливаем камеры и отменяем привязку
         cameraProvider.unbindAll()
-        cameraChannel.invokeMethod("onCameraStatus", "Cameras stopped")
+
     }
 }

@@ -84,7 +84,7 @@ class AudioToTextService(private val context: Context) {
                 val partialMatches = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 partialMatches?.forEach { partialMatch ->
                     Log.d("SpeechRecognizer", "Промежуточный текст: $partialMatch")
-                    eventSink?.success(partialMatch) // Отправляем промежуточный текст
+                    sendRecognizedTextToFlutter(partialMatch) // Отправляем промежуточный текст
                 }
             }
 

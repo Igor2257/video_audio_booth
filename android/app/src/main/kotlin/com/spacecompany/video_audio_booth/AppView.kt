@@ -8,6 +8,7 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
 
+
 class AppView {
 
     fun handle(
@@ -19,22 +20,34 @@ class AppView {
         val fileService: FileService = FileService()
         when (call.method) {
             "stopSession" -> {
+                // Завершаем сессию, если необходимо
             }
 
             "startSession" -> {
                 controller.startCamera()
-
+                // Возможно, здесь можно добавить другие действия, связанные с началом сессии
             }
 
             "startDualCamera" -> {
-AudioToTextService(context).startSpeechRecognition();
+                // Запускаем распознавание речи
+                val audioToTextService = AudioToTextService(context)
+                audioToTextService.startSpeechRecognition()
+
+                // Запускаем камеру
+                controller.startCamera()
+
                 Log.d("UnifiedCameraService", "Dual Camera Started")
                 result.success("Dual Camera Started")
             }
 
             "stopDualCamera" -> {
-                AudioToTextService(context).stopSpeechRecognition();
+                // Останавливаем распознавание речи
+                val audioToTextService = AudioToTextService(context)
+                audioToTextService.stopSpeechRecognition()
+
+                // Останавливаем камеры
                 controller.stopCamera()
+
                 Log.d("UnifiedCameraService", "Dual Camera Stopped")
                 result.success("Dual Camera Stopped")
             }
@@ -109,3 +122,4 @@ AudioToTextService(context).startSpeechRecognition();
         }
     }
 }
+
