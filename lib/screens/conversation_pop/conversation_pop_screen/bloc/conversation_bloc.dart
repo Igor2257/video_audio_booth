@@ -14,6 +14,6 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
 
   FutureOr<void> _onLoadData(
       LoadData event, Emitter<ConversationState> emit) async {
-    
+
   }
 }

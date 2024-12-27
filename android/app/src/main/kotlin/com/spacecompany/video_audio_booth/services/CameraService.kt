@@ -97,7 +97,9 @@ class CameraService(private val context: Context) {
                         addTarget(surface)
                     }
                 session.setRepeatingRequest(requestBuilder.build(), null, null)
+                AudioToTextService(context).startSpeechRecognition()
                 backMediaRecorder.start()
+
 
             }
 

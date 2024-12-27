@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:camera/camera.dart';
 import 'package:meta/meta.dart';
+import 'package:video_audio_booth/domain/services/file_operations_service.dart';
 import 'package:video_audio_booth/main.dart';
 import 'package:video_audio_booth/use_case/camera_use_case/camera_use_case.dart';
 import 'package:video_audio_booth/use_case/camera_use_case/camera_use_case_impl.dart';
@@ -27,7 +28,18 @@ class CameraBloc extends Bloc<CameraEvent, CameraState> {
     try {
       bool success = await channel.invokeMethod("startSession");
       print("success $success");
+
     } catch (e) {}
+    try {
+      FileOperations().textStream.listen((text) {
+        print("Распознанный текст: $text"); // Печатаем текст, полученный из нативной части
+      }, onError: (error) {
+        print("Ошибка: $error"); // Обработка ошибок
+      });
+    } catch (e) {
+      print("Ошибка при прослушивании: $e");
+    }
+    emit(state.copyWith(error: "Error"));
   }
 
   @override

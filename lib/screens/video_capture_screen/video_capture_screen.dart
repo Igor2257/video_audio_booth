@@ -32,13 +32,7 @@ class VideoCaptureScreen extends StatelessWidget {
             padding: EdgeInsets.all(16.0),
             child: Stack(
               children: [
-                Positioned(
-                  right: 16.0,
-                  top: 16.0,
-                  child: FrontCameraWidget(),
-                ),
                 BackCameraWidget(),
-
                 StartPauseButtonWidget(),
               ],
             ),

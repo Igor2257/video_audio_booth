@@ -1,26 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:layout_gravity="end"
-    android:layout_alignEnd="@id/front_camera_view"
     tools:context="com.spacecompany.video_audio_booth.MainActivity">
 
+    <!-- PreviewView для задней камеры (занимает весь экран) -->
     <androidx.camera.view.PreviewView
         android:id="@+id/camera_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#FFFFFFFF"
-        />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#FF000000" />
 
+    <!-- PreviewView для фронтальной камеры (занимает определенную высоту) -->
     <androidx.camera.view.PreviewView
         android:id="@+id/front_camera_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="#FFFFFFFF"
-        />
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:background="#FFFFFFFF" />
 
-</FrameLayout>
+</LinearLayout>

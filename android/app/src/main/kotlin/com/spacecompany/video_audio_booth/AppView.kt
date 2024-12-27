@@ -1,55 +1,46 @@
 package com.spacecompany.video_audio_booth
 
-
 import android.content.Context
 import android.util.Log
-import com.spacecompany.video_audio_booth.camera.CameraViewController
-import com.spacecompany.video_audio_booth.services.CameraService
+import com.spacecompany.video_audio_booth.camera.UnifiedCameraService
 import com.spacecompany.video_audio_booth.services.FileService
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
 
 class AppView {
+
     fun handle(
         call: MethodCall,
         result: MethodChannel.Result,
-        controller: CameraViewController,
+        controller: UnifiedCameraService,
         context: Context
     ) {
-        val cameraService: CameraService = CameraService(context)
         val fileService: FileService = FileService()
         when (call.method) {
             "stopSession" -> {
-                var isStopped:Boolean? = false
-                controller.stopCamera { stopped ->
-                    isStopped = stopped
-                }
-                result.success(isStopped)
             }
 
             "startSession" -> {
-                var isInitialized:Boolean? = false
-                controller.startCamera { initialized ->
-                    isInitialized = initialized
-                }
+                controller.startCamera()
 
-                result.success(isInitialized)
             }
 
             "startDualCamera" -> {
-                cameraService.startDualCameraRecording()
+AudioToTextService(context).startSpeechRecognition();
+                Log.d("UnifiedCameraService", "Dual Camera Started")
                 result.success("Dual Camera Started")
             }
 
             "stopDualCamera" -> {
-                cameraService.stopDualCameraRecording()
+                AudioToTextService(context).stopSpeechRecognition();
+                controller.stopCamera()
+                Log.d("UnifiedCameraService", "Dual Camera Stopped")
                 result.success("Dual Camera Stopped")
             }
 
             "getAudioText" -> {
                 result.success(
-
                     fileService.readFileTxtContent(
                         File(
                             fileService.getOutputDirectory(context),
@@ -113,7 +104,6 @@ class AppView {
                     }
                 }
             }
-
 
             else -> result.notImplemented()
         }
