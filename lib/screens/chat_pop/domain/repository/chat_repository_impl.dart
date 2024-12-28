@@ -18,6 +18,17 @@ class ChatRepositoryImpl implements ChatRepository {
   @override
   Future<Result<ChatMessageEntity>> getAnswerFromChatGPTFromQuery(
       String query) async {
+    if (query == "Заглушка") {
+      return Result.success(ChatMessageEntity(
+          id: const Uuid().v1(),
+          text:
+              "Солнечная система - это система, включающая в себя Солнце и все объекты, которые находятся под его гравитационным влиянием. К ней относятся планеты, их спутники, астероиды, кометы, межпланетный газ и пыль. В настоящее время известно, что в нашей Солнечной системе находится 8 планет: Меркурий, Венера, Земля, Марс, Юпитер, Сатурн, Уран и Нептун.",
+          isSender: false,
+          isSent: true,
+          conversationId: '',
+          messageSentDateTime: DateTime.now()));
+    }
+
     final response = await _chatDataImpl.getAnswerFromChatGPTFromQuery(query);
     if (response.statusCode == 200) {
       var responseBody = jsonDecode(response.body);

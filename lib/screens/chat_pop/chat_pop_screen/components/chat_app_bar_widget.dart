@@ -5,11 +5,13 @@ class ChatAppBarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<ChatBloc, ChatState, ConversationEntity>(
+    return BlocSelector<ChatBloc, ChatState, ConversationEntity?>(
       selector: (state) {
-        return state.conversationEntity!;
+        return state.conversationEntity;
       },
       builder: (context, conversationEntity) {
+        print("conversationEntity $conversationEntity");
+        if(conversationEntity==null)return SizedBox();
         return Container(
           decoration: const BoxDecoration(
             border: Border(

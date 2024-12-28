@@ -10,13 +10,14 @@ class ChatMessagesListViewWidget extends StatelessWidget {
         return state.messagesInConversationEntities;
       },
       builder: (context, messagesInConversationEntities) {
-        return ListView.builder(
-            shrinkWrap: true,
-            itemCount: messagesInConversationEntities.length,
-            itemBuilder: (context, position) {
-              return ChatBubbleWidget(
-                  message: messagesInConversationEntities[position]);
-            });
+        return Expanded(
+          child: ListView.builder(
+              itemCount: messagesInConversationEntities.length,
+              itemBuilder: (context, position) {
+                return ChatBubbleWidget(
+                    message: messagesInConversationEntities[position]);
+              }),
+        );
       },
     );
   }

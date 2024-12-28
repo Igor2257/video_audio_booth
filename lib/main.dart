@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get_it/get_it.dart';
 import 'package:video_audio_booth/bloc/app_bloc/app_bloc.dart';
-import 'package:video_audio_booth/bloc/login_bloc/login_bloc.dart';
+import 'package:video_audio_booth/bloc/login_bloc/login_bloc.dart'as lb;
 import 'package:video_audio_booth/bloc/text_classification_bloc/text_classification_bloc.dart'
     as tcb;
 import 'package:video_audio_booth/firebase_options.dart';
@@ -29,14 +29,14 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) => AppBloc(),
+          create: (context) => AppBloc()..add(LoadData()),
         ),
         BlocProvider(
           create: (context) => tcb.TextClassificationBloc()
             ..add(tcb.LoadData()),
         ),
         BlocProvider(
-          create: (context) => LoginBloc()..add(LoadData()),
+          create: (context) => lb.LoginBloc()..add(lb.LoadData()),
         ),
       ],
       child: MaterialApp(

@@ -10,17 +10,10 @@ class BackCameraWidget extends StatelessWidget {
         return state.backController;
       },
       builder: (context, backController) {
-        const String viewType = '<camera_view>';
+        const String viewType = 'camera_fragment_view';
         // Pass parameters to the platform side.
         final Map<String, dynamic> creationParams = <String, dynamic>{};
-        return Center(
-          child: AndroidView(
-            viewType: viewType,
-            layoutDirection: TextDirection.ltr,
-            creationParams: creationParams,
-            creationParamsCodec: const StandardMessageCodec(),
-          ),
-        );
+        return SizedBox();
       },
     );
   }

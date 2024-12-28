@@ -47,7 +47,7 @@ class AudioToTextService(private val context: Context) {
 
             override fun onEndOfSpeech() {
                 Log.d("SpeechRecognizer", "Конец речи.")
-                isListening = false
+
                 restartSpeechRecognition()
             }
 
@@ -62,7 +62,6 @@ class AudioToTextService(private val context: Context) {
                 }
                 Log.e("SpeechRecognizer", "Ошибка: $error ($errorMessage)")
                 if (error != SpeechRecognizer.ERROR_CLIENT && error != SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS) {
-                    isListening = false
                     restartSpeechRecognition()
                 }
             }
@@ -84,7 +83,7 @@ class AudioToTextService(private val context: Context) {
                 val partialMatches = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 partialMatches?.forEach { partialMatch ->
                     Log.d("SpeechRecognizer", "Промежуточный текст: $partialMatch")
-                    sendRecognizedTextToFlutter(partialMatch) // Отправляем промежуточный текст
+                    sendRecognizedTextToFlutter(partialMatch)
                 }
             }
 
@@ -111,25 +110,30 @@ class AudioToTextService(private val context: Context) {
     private fun restartSpeechRecognition() {
         if (shouldStopListening) return
         if (isListening) {
+            isListening = false
             speechRecognizer.stopListening()
         }
         Handler(Looper.getMainLooper()).postDelayed({
-            startSpeechRecognition()
+            startNewListening()
         }, 1000)
     }
 
     fun startSpeechRecognition() {
+        isListening=false
+        shouldStopListening=false
+        startNewListening()
+    }
+    private fun startNewListening(){
+        Log.d("SpeechRecognizer", "Начало выполняется распознавание.")
         if (isListening) {
             Log.d("SpeechRecognizer", "Уже выполняется распознавание.")
             return
         }
         isListening = true
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(
-                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
-            )
-            putExtra(RecognizerIntent.EXTRA_PROMPT, "Говорите сейчас")
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 50000) // Устанавливаем длинный тайм-аут
+            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5000) // Лимитируем количество результатов
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 50000)
         }
         speechRecognizer.startListening(intent)
     }

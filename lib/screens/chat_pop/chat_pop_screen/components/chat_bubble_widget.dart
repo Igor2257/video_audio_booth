@@ -25,20 +25,17 @@ class ChatBubbleWidget extends StatelessWidget {
             margin: message.isSender
                 ? const EdgeInsets.fromLTRB(7, 7, 14, 7)
                 : const EdgeInsets.fromLTRB(17, 7, 7, 7),
-            child: Stack(
-              children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.only(left: 4, right: 20),
-                  child: Text(
-                    message.text,
-                    style: const TextStyle(
-                      color: Colors.black87,
-                      fontSize: 16,
-                    ),
-                    textAlign: TextAlign.left,
-                  ),
+            child:  Padding(
+              padding: const EdgeInsets.only(left: 4, right: 20),
+              child: Text(
+                message.text,
+                style: const TextStyle(
+                  color: Colors.black87,
+                  fontSize: 16,
                 ),
-              ],
+                textAlign: TextAlign.left,
+              ),
+
             ),
           ),
         ),

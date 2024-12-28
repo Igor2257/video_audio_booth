@@ -15,7 +15,8 @@ class AppView {
         call: MethodCall,
         result: MethodChannel.Result,
         controller: UnifiedCameraService,
-        context: Context
+        context: Context,
+        audioToTextService: AudioToTextService
     ) {
         val fileService: FileService = FileService()
         when (call.method) {
@@ -24,17 +25,19 @@ class AppView {
             }
 
             "startSession" -> {
-                controller.startCamera()
+             //   controller.startCamera()
                 // Возможно, здесь можно добавить другие действия, связанные с началом сессии
             }
 
             "startDualCamera" -> {
                 // Запускаем распознавание речи
-                val audioToTextService = AudioToTextService(context)
                 audioToTextService.startSpeechRecognition()
 
                 // Запускаем камеру
-                controller.startCamera()
+               //controller.startRecording(
+               //    File(fileService.getOutputDirectory(context), "back.mp4"),
+               //    File(fileService.getOutputDirectory(context), "front.mp4"),
+               //)
 
                 Log.d("UnifiedCameraService", "Dual Camera Started")
                 result.success("Dual Camera Started")
@@ -42,11 +45,10 @@ class AppView {
 
             "stopDualCamera" -> {
                 // Останавливаем распознавание речи
-                val audioToTextService = AudioToTextService(context)
                 audioToTextService.stopSpeechRecognition()
 
                 // Останавливаем камеры
-                controller.stopCamera()
+                //controller.stopRecording()
 
                 Log.d("UnifiedCameraService", "Dual Camera Stopped")
                 result.success("Dual Camera Stopped")

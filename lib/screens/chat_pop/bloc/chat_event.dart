@@ -4,15 +4,20 @@ part of 'chat_bloc.dart';
 sealed class ChatEvent {}
 
 class LoadData extends ChatEvent{
-  final ConversationEntity conversationEntity;
+  final TextEditingController messageTextEditingController;
 
-  LoadData({required this.conversationEntity});
+  LoadData({required this.messageTextEditingController});
 }
 
 class SendNewMessage extends ChatEvent{
+
+  SendNewMessage();
+}
+
+class ReceiveNewMessageFromMessage extends ChatEvent{
   final String message;
 
-  SendNewMessage({required this.message});
+  ReceiveNewMessageFromMessage({required this.message});
 }
 
 

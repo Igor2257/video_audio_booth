@@ -5,20 +5,15 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context="com.spacecompany.video_audio_booth.MainActivity">
-
-    <!-- PreviewView для задней камеры (занимает весь экран) -->
-    <androidx.camera.view.PreviewView
+    <android.view.SurfaceView
         android:id="@+id/camera_view"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="#FF000000" />
+        android:layout_height="200dp" />
 
-    <!-- PreviewView для фронтальной камеры (занимает определенную высоту) -->
-    <androidx.camera.view.PreviewView
+    <android.view.SurfaceView
         android:id="@+id/front_camera_view"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:background="#FFFFFFFF" />
+        android:layout_height="200dp" />
+
 
 </LinearLayout>

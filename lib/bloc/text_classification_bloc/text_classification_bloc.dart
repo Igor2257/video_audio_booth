@@ -17,14 +17,14 @@ class TextClassificationBloc
   FutureOr<void> _onLoadData(
       LoadData event, Emitter<TextClassificationState> emit) async {
     print("load data");
-    add(ClassifyText(text: "що працює як ця технологія"));
-    add(ClassifyText(text: "Знайди як працює ця технологія"));
-    add(ClassifyText(text: "Мені дуже подобається ця технологія"));
-    add(ClassifyText(text: "Треба щоб було чудово"));
-    add(ClassifyText(text: "Сделай это сейчас"));
-    add(ClassifyText(text: "Запишите это"));
-    add(ClassifyText(text: "Сделай это сейчас"));
-    add(ClassifyText(text: "Сделай это за меня"));
+   // add(ClassifyText(text: "що працює як ця технологія"));
+   // add(ClassifyText(text: "Знайди як працює ця технологія"));
+   // add(ClassifyText(text: "Мені дуже подобається ця технологія"));
+   // add(ClassifyText(text: "Треба щоб було чудово"));
+   // add(ClassifyText(text: "Сделай это сейчас"));
+   // add(ClassifyText(text: "Запишите это"));
+   // add(ClassifyText(text: "Сделай это сейчас"));
+   // add(ClassifyText(text: "Сделай это за меня"));
   }
 
   FutureOr<void> _onClassifyText(

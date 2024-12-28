@@ -25,20 +25,15 @@ class CameraBloc extends Bloc<CameraEvent, CameraState> {
   final CameraUseCase _cameraUseCase = CameraUseCaseImpl.instance;
 
   FutureOr<void> _onLoadData(LoadData event, Emitter<CameraState> emit) async {
+    print("Try to connect");
+    print("Error");
     try {
       bool success = await channel.invokeMethod("startSession");
       print("success $success");
-
-    } catch (e) {}
-    try {
-      FileOperations().textStream.listen((text) {
-        print("Распознанный текст: $text"); // Печатаем текст, полученный из нативной части
-      }, onError: (error) {
-        print("Ошибка: $error"); // Обработка ошибок
-      });
     } catch (e) {
-      print("Ошибка при прослушивании: $e");
+      print("Error $e");
     }
+    print("Try to startSession");
     emit(state.copyWith(error: "Error"));
   }
 

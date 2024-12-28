@@ -11,7 +11,7 @@ class AppRoutes {
 
   static Map<String, Widget Function(BuildContext)> getAppRoutes = {
     AppRoutes.loginScreen: (context) => const LoginScreen(),
-    AppRoutes.navigationScreen: (context) => const NavigationScreen(),
+    AppRoutes.navigationScreen: (context) => NavigationScreen(),
     AppRoutes.registerScreen: (context) => const RegisterScreen(),
     AppRoutes.splashScreen: (context) => const SplashScreen(),
   };
