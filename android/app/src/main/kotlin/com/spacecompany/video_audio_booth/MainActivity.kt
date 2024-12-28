@@ -4,13 +4,11 @@ import android.content.Context
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
 import androidx.annotation.NonNull
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
-import com.spacecompany.video_audio_booth.camera.CameraViewFactory
+import com.spacecompany.video_audio_booth.camera.CameraViewController
 import com.spacecompany.video_audio_booth.camera.UnifiedCameraService
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -32,12 +30,6 @@ class MainActivity : FlutterActivity() {
         // Инициализация appView
         appView = AppView()
 
-        val view: View = LayoutInflater.from(this).inflate(R.layout.camera_view, null)
-
-        //flutterEngine
-        //    .platformViewsController
-        //    .registry
-        //    .registerViewFactory("camera_fragment_view", CameraViewFactory(view))
 
         // Настройка EventChannel для передачи текста
         val eventChannel = EventChannel(
@@ -77,13 +69,15 @@ class MainActivity : FlutterActivity() {
         // Инициализация cameraController
         val backLifecycleOwner = CameraLifecycleOwner()
         val frontLifecycleOwner = CameraLifecycleOwner()
-        cameraController = UnifiedCameraService(
-            this, view.findViewById(R.id.camera_view),
-            view.findViewById(R.id.front_camera_view),
-        )
-      //  cameraController.startCamera()
+        //  cameraController.startCamera()
         methodChannel.setMethodCallHandler { call, result ->
-            appView.handle(call, result, cameraController, context, audioToTextService)
+            appView.handle(
+                call,
+                result,
+                CameraViewController(this, audioToTextService),
+                context,
+                audioToTextService
+            )
         }
 
     }

@@ -1,124 +1,171 @@
 package com.spacecompany.video_audio_booth.camera
 
-import android.annotation.SuppressLint
+import android.Manifest
 import android.content.Context
-import androidx.camera.core.AspectRatio
-import androidx.camera.core.Camera
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.Preview
-import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.view.PreviewView
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.LifecycleOwner
-import com.google.common.util.concurrent.ListenableFuture
-import io.flutter.Log
+import android.content.pm.PackageManager
+import android.hardware.camera2.CameraAccessException
+import android.hardware.camera2.CameraCaptureSession
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraDevice
+import android.hardware.camera2.CameraManager
+import android.media.MediaRecorder
+import android.os.Handler
+import android.os.Looper
+import androidx.core.app.ActivityCompat
+import com.spacecompany.video_audio_booth.AudioToTextService
+import java.io.File
 
 class CameraViewController(
     private val context: Context,
-    private val lifecycleOwner: LifecycleOwner,
-    camera: PreviewView,
-    cameraFront: PreviewView,
+    private val audio: AudioToTextService,
 ) {
+    private lateinit var backMediaRecorder: MediaRecorder
+    private lateinit var frontMediaRecorder: MediaRecorder
+    private lateinit var backCameraSession: CameraCaptureSession
+    private lateinit var frontCameraSession: CameraCaptureSession
 
-    private val cameraPreview: PreviewView = camera
-    private val cameraPreviewFront: PreviewView = cameraFront
-    private var cameraDevice: Camera? = null
-    private var cameraDeviceFront: Camera? = null
-    private var isInitialized = false
-    private var currentLensFacing: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-    private var currentLensFacingFront: CameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+    private lateinit var videoOutputDirectory: File
+    fun startDualCameraRecording() {
+        val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
 
-
-    /**
-     * To start camera preview and capture
-     */
-    @SuppressLint("MissingPermission", "RestrictedApi")
-    fun startCamera(onInitialize: (result: Boolean?) -> Unit) {
-        val cameraProviderFuture: ListenableFuture<ProcessCameraProvider> =
-            ProcessCameraProvider.getInstance(context.applicationContext)
-        val cameraProviderFutureFront: ListenableFuture<ProcessCameraProvider> =
-            ProcessCameraProvider.getInstance(context.applicationContext)
         try {
-            cameraProviderFutureFront.addListener({
-                try {
+            val backCameraId = cameraManager.cameraIdList.first { id ->
+                cameraManager.getCameraCharacteristics(id)
+                    .get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_BACK
+            }
 
-                    val cameraProviderFront: ProcessCameraProvider = cameraProviderFutureFront.get()
-                    val previewFront: Preview = Preview.Builder().apply {
-                        setTargetAspectRatio(AspectRatio.RATIO_16_9)
-                    }.build()
-                    previewFront.setSurfaceProvider(cameraPreviewFront.surfaceProvider)
-                    cameraPreviewFront.scaleType = PreviewView.ScaleType.FIT_END
-                    try {
-                        cameraProviderFront.unbindAll()
-                        cameraDeviceFront = cameraProviderFront.bindToLifecycle(
-                            lifecycleOwner,
-                            currentLensFacingFront,
-                            previewFront,
-                        )
-                        isInitialized = true
-                    } catch (exc: Exception) {
-                        Log.e("Camera", exc.toString())
-                    }
-                } catch (e: Exception) {
-                    Log.e("Camera", e.toString())
+            val frontCameraId = cameraManager.cameraIdList.first { id ->
+                cameraManager.getCameraCharacteristics(id)
+                    .get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT
+            }
+
+            val mainHandler = Handler(Looper.getMainLooper())
+
+            if (ActivityCompat.checkSelfPermission(
+                    context, Manifest.permission.CAMERA
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+
+                return
+            }
+
+            cameraManager.openCamera(backCameraId, object : CameraDevice.StateCallback() {
+                override fun onOpened(camera: CameraDevice) {
+                    setupBackCamera(camera)
                 }
-            }, ContextCompat.getMainExecutor(context))
-            cameraProviderFuture.addListener({
-                try {
-                    // Used to bind the lifecycle of cameras to the lifecycle owner
-                    val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
-                    val preview: Preview = Preview.Builder().apply {
-                        setTargetAspectRatio(AspectRatio.RATIO_16_9)
-                    }.build()
-                    preview.setSurfaceProvider(cameraPreview.surfaceProvider)
-                    cameraPreview.scaleType = PreviewView.ScaleType.FIT_CENTER
-                    try {
-                        // Unbind use cases before rebinding
-                        cameraProvider.unbindAll()
 
-                        // Bind use cases to camera
-                        cameraDevice = cameraProvider.bindToLifecycle(
-                            lifecycleOwner,
-                            currentLensFacing,
-                            preview,
-                        )
-
-
-                        isInitialized = true
-
-                    } catch (exc: Exception) {
-                        Log.e("Camera", exc.toString())
-                    }
-                } catch (e: Exception) {
-                    Log.e("Camera", e.toString())
+                override fun onDisconnected(camera: CameraDevice) {
+                    camera.close()
                 }
-            }, ContextCompat.getMainExecutor(context))
 
-            onInitialize.invoke(isInitialized)
+                override fun onError(camera: CameraDevice, error: Int) {
+                    camera.close()
+                }
+            }, mainHandler)
 
-        } catch (e: Exception) {
-            Log.e("Camera", e.toString())
+            cameraManager.openCamera(frontCameraId, object : CameraDevice.StateCallback() {
+                override fun onOpened(camera: CameraDevice) {
+                    setupFrontCamera(camera)
+                }
+
+                override fun onDisconnected(camera: CameraDevice) {
+                    camera.close()
+                }
+
+                override fun onError(camera: CameraDevice, error: Int) {
+                    camera.close()
+                }
+            }, mainHandler)
+
+        } catch (e: CameraAccessException) {
+            e.printStackTrace()
         }
     }
 
-    /**
-     * To stop camera preview and capture
-     */
-    fun stopCamera(onStop: (result: Boolean?) -> Unit) {
-        // if (isInitialized) {
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(context.applicationContext)
+    private fun setupBackCamera(camera: CameraDevice) {
+        backMediaRecorder = createMediaRecorder("back_camera_video.mp4")
+        val surface = backMediaRecorder.surface
+        val surfaces = listOf(surface)
+
+        camera.createCaptureSession(surfaces, object : CameraCaptureSession.StateCallback() {
+            override fun onConfigured(session: CameraCaptureSession) {
+                backCameraSession = session
+                val requestBuilder =
+                    camera.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
+                        addTarget(surface)
+                    }
+                session.setRepeatingRequest(requestBuilder.build(), null, null)
+                AudioToTextService(context).startSpeechRecognition()
+                backMediaRecorder.start()
+                audio.startSpeechRecognition()
+
+            }
+
+            override fun onConfigureFailed(session: CameraCaptureSession) {
+                session.close()
+            }
+        }, null)
+    }
+
+    private fun setupFrontCamera(camera: CameraDevice) {
+        frontMediaRecorder = createMediaRecorder("front_camera_video.mp4")
+        val surface = frontMediaRecorder.surface
+        val surfaces = listOf(surface)
+
+        camera.createCaptureSession(surfaces, object : CameraCaptureSession.StateCallback() {
+            override fun onConfigured(session: CameraCaptureSession) {
+                frontCameraSession = session
+                val requestBuilder =
+                    camera.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
+                        addTarget(surface)
+                    }
+                session.setRepeatingRequest(requestBuilder.build(), null, null)
+                frontMediaRecorder.start()
+            }
+
+            override fun onConfigureFailed(session: CameraCaptureSession) {
+                session.close()
+            }
+        }, null)
+    }
+
+    private fun createMediaRecorder(fileName: String): MediaRecorder {
+        val outputDir = getOutputDirectory()
+        val videoFile = File(outputDir, fileName)
+        return MediaRecorder().apply {
+            setVideoSource(MediaRecorder.VideoSource.CAMERA)
+            setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+            setOutputFile(videoFile.absolutePath)
+            setVideoEncoder(MediaRecorder.VideoEncoder.H264)
+            setVideoFrameRate(30)
+            setVideoSize(1920, 1080)
+            setVideoEncodingBitRate(10000000)
+            prepare()
+        }
+    }
+
+    fun stopDualCameraRecording() {
         try {
-            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
-            cameraProvider.unbindAll()
-            cameraDevice = null
-            isInitialized = false
-            onStop.invoke(true)
+            backMediaRecorder.stop()
+            backMediaRecorder.reset()
+            backMediaRecorder.release()
+
+            frontMediaRecorder.stop()
+            frontMediaRecorder.reset()
+            frontMediaRecorder.release()
+            audio .stopSpeechRecognition()
         } catch (e: Exception) {
             e.printStackTrace()
-            onStop.invoke(false)
         }
-        //   }
     }
 
+    private fun getOutputDirectory(): File {
+        if (!::videoOutputDirectory.isInitialized) {
+            videoOutputDirectory = context.externalMediaDirs.firstOrNull()?.let {
+                File(it, "dual_camera_videos").apply { mkdirs() }
+            } ?: context.filesDir
+        }
+        return videoOutputDirectory
+    }
 
 }

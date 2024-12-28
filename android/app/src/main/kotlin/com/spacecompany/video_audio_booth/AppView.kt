@@ -2,6 +2,7 @@ package com.spacecompany.video_audio_booth
 
 import android.content.Context
 import android.util.Log
+import com.spacecompany.video_audio_booth.camera.CameraViewController
 import com.spacecompany.video_audio_booth.camera.UnifiedCameraService
 import com.spacecompany.video_audio_booth.services.FileService
 import io.flutter.plugin.common.MethodCall
@@ -14,7 +15,7 @@ class AppView {
     fun handle(
         call: MethodCall,
         result: MethodChannel.Result,
-        controller: UnifiedCameraService,
+        controller: CameraViewController,
         context: Context,
         audioToTextService: AudioToTextService
     ) {
@@ -25,13 +26,12 @@ class AppView {
             }
 
             "startSession" -> {
-             //   controller.startCamera()
                 // Возможно, здесь можно добавить другие действия, связанные с началом сессии
             }
 
             "startDualCamera" -> {
                 // Запускаем распознавание речи
-                audioToTextService.startSpeechRecognition()
+                controller.startDualCameraRecording()
 
                 // Запускаем камеру
                //controller.startRecording(
@@ -45,7 +45,7 @@ class AppView {
 
             "stopDualCamera" -> {
                 // Останавливаем распознавание речи
-                audioToTextService.stopSpeechRecognition()
+                controller.stopDualCameraRecording()
 
                 // Останавливаем камеры
                 //controller.stopRecording()

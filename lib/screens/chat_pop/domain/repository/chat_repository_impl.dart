@@ -18,7 +18,7 @@ class ChatRepositoryImpl implements ChatRepository {
   @override
   Future<Result<ChatMessageEntity>> getAnswerFromChatGPTFromQuery(
       String query) async {
-    if (query == "Заглушка") {
+    if (query.toLowerCase() == "заглушка") {
       return Result.success(ChatMessageEntity(
           id: const Uuid().v1(),
           text:
