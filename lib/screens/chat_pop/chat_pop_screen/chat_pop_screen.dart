@@ -1,4 +1,3 @@
-import 'package:chat_bubbles/chat_bubbles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:video_audio_booth/screens/chat_pop/bloc/chat_bloc.dart';
@@ -19,7 +18,7 @@ class ChatPopScreen extends StatelessWidget {
     return BlocProvider(
       create: (context) =>
           ChatBloc()..add(LoadData(messageTextEditingController: messageTextEditingController)),
-      child: ChatPopView(),
+      child: const ChatPopView(),
     );
   }
 }

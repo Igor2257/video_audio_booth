@@ -106,18 +106,7 @@ class AppView {
             "startClassify" -> {
                 val message = call.arguments?.toString()
                 Log.d("Result", "message $message")
-                val classifier = Classifier(context)
-                classifier.load("text_classification_model.tflite", "word_dict.json") {
-                    Log.d("Result", "Model loaded")
-                    if (message != null) {
-                        classifier.classify(message) { resultText ->
-                            Log.d("Result Text", resultText)
-                            result.success(resultText)
-                        }
-                    } else {
-                        Log.d("Result", "Message is null")
-                    }
-                }
+
             }
 
             else -> result.notImplemented()
