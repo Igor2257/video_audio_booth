@@ -104,15 +104,15 @@ class DualCameraView(context: Context) : FrameLayout(context), PlatformView {
     // Start recording both cameras
     @RequiresApi(Build.VERSION_CODES.O)
     fun startRecording() {
-        backCamera.startRecording("back")
+        backCamera.startRecording("0")
 
-        frontCamera.startRecording("front")
+        frontCamera.startRecording("1")
     }
 
     // Stop recording both cameras
     fun stopRecording() {
-        backCamera.stopRecording("back")
-        frontCamera.stopRecording("front")
+        backCamera.stopRecording("0")
+        frontCamera.stopRecording("1")
     }
 
     private fun getCameraIds(context: Context): Pair<String?, String?> {
@@ -148,4 +148,21 @@ class DualCameraView(context: Context) : FrameLayout(context), PlatformView {
     override fun getView(): View {
         return this
     }
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        // Reinitialize camera when the view is attached to window
+        if (textureViewBack.isAvailable && textureViewFront.isAvailable) {
+            backCamera.openCamera("0", textureViewBack)
+            frontCamera.openCamera("1", textureViewFront)
+        }
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        // Close cameras when the view is detached from window
+        backCamera.closeCamera()
+        frontCamera.closeCamera()
+    }
+
+
 }

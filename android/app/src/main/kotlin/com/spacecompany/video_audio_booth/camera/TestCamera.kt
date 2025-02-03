@@ -65,14 +65,11 @@ class TestCamera(private val context: Context) {
     }
 
     private fun setupCamera(cameraId: String) {
-        val surface = Surface(surfaceTexture)
+        val previewSurface = Surface(surfaceTexture)  // For preview
+
 
         val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-        if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.CAMERA
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             Log.e("TestCamera", "Нет разрешения на использование камеры")
             return
         }
@@ -82,25 +79,22 @@ class TestCamera(private val context: Context) {
             override fun onOpened(camera: CameraDevice) {
                 cameraDevice = camera
                 setupMediaRecorder(cameraId)
-                val captureRequestBuilder =
-                    camera.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
+                val recorderSurface = mediaRecorder.surface  // For recording
 
-                captureRequestBuilder.addTarget(surface)
+                val captureRequestBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
+                captureRequestBuilder.addTarget(previewSurface)
+                captureRequestBuilder.addTarget(recorderSurface)
 
-                camera.createCaptureSession(
-                    listOf(surface),
-                    object : CameraCaptureSession.StateCallback() {
-                        override fun onConfigured(session: CameraCaptureSession) {
-                            cameraCaptureSession = session
-                            session.setRepeatingRequest(captureRequestBuilder.build(), null, null)
-                        }
+                camera.createCaptureSession(listOf(previewSurface, recorderSurface), object : CameraCaptureSession.StateCallback() {
+                    override fun onConfigured(session: CameraCaptureSession) {
+                        cameraCaptureSession = session
+                        session.setRepeatingRequest(captureRequestBuilder.build(), null, null)
+                    }
 
-                        override fun onConfigureFailed(session: CameraCaptureSession) {
-                            Log.e("TestCamera", "Настройка сеанса камеры не удалась.")
-                        }
-                    },
-                    null
-                )
+                    override fun onConfigureFailed(session: CameraCaptureSession) {
+                        Log.e("TestCamera", "Настройка сеанса камеры не удалась.")
+                    }
+                }, null)
             }
 
             override fun onDisconnected(camera: CameraDevice) {
@@ -109,10 +103,7 @@ class TestCamera(private val context: Context) {
 
             override fun onError(camera: CameraDevice, error: Int) {
                 if (error == CameraDevice.StateCallback.ERROR_CAMERA_IN_USE) {
-                    Log.e(
-                        "TestCamera",
-                        "Камера занята другим приложением. Попробую снова через 2 секунды."
-                    )
+                    Log.e("TestCamera", "Камера занята другим приложением. Попробую снова через 2 секунды.")
                     handler.postDelayed({ setupCamera(cameraId) }, 2000)
                 } else {
                     Log.e("TestCamera", "Ошибка камеры: $error")
@@ -127,7 +118,7 @@ class TestCamera(private val context: Context) {
         Log.d("TestCamera", "Начинаем настройку MediaRecorder")
         mediaRecorder = MediaRecorder().apply {
             setVideoSource(MediaRecorder.VideoSource.SURFACE)
-            setOutputFile(File(getOutputDirectory(), "${name}.mp4").absolutePath)
+            setOutputFile(File(getOutputDirectory(), "${System.currentTimeMillis()}.mp4").absolutePath)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT)
             prepare()
@@ -163,18 +154,26 @@ class TestCamera(private val context: Context) {
             return
         }
         try {
-            Log.e("TestCamera", "$name stop")
-            mediaRecorder.stop() // Останавливаем запись
-            mediaRecorder.reset() // Сбросить настройки
-            mediaRecorder.release() // Освобождение ресурсов
+            mediaRecorder.stop()
+            mediaRecorder.reset()
+            mediaRecorder.release()
             Log.d("TestCamera", "Запись успешно остановлена")
         } catch (e: Exception) {
             Log.e("TestCamera", "Ошибка при остановке записи: ${e.message}")
-            // В случае ошибки сбросим и освободим ресурсы
             mediaRecorder.reset()
             mediaRecorder.release()
         }
+
+        // Safely close the camera and stop using it before restarting the camera session
+        closeCamera()
+
+        // Make sure the camera is fully released and not in use
+        handler.postDelayed({
+            setupCamera(name)  // Call after ensuring camera is closed properly
+        }, 100)  // Slight delay to ensure that camera device is released
     }
+
+
 
 
     fun closeCamera() {
