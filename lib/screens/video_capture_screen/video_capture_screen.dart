@@ -30,13 +30,18 @@ class VideoCaptureScreen extends StatelessWidget {
           ),
           body: const Padding(
             padding: EdgeInsets.all(16.0),
-            child: ColoredBox(
-              color: Colors.black26,
-              child: AndroidView(
-                viewType: 'camera-view',
-                creationParams: {},
-                creationParamsCodec: const StandardMessageCodec(),
-              ),
+            child: Stack(
+              children: [
+                ColoredBox(
+                  color: Colors.black26,
+                  child: AndroidView(
+                    viewType: 'camera-view',
+                    creationParams: {},
+                    creationParamsCodec: const StandardMessageCodec(),
+                  ),
+                ),
+                StartPauseButtonWidget(),
+              ],
             ),
           ),
         ),

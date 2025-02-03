@@ -7,13 +7,18 @@ import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
+import android.media.MediaCodec
 import android.media.MediaRecorder
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.Surface
 import android.view.TextureView
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
+import java.io.File
+
 
 class TestCamera(private val context: Context) {
 
@@ -21,68 +26,81 @@ class TestCamera(private val context: Context) {
     private var cameraCaptureSession: CameraCaptureSession? = null
     private lateinit var surfaceTexture: SurfaceTexture
     private lateinit var textureView: TextureView
+    private lateinit var mediaRecorder: MediaRecorder
+    private lateinit var outputDirectory: File
+
+    private val handler = Handler(Looper.getMainLooper())
 
     fun openCamera(cameraId: String, textureView: TextureView) {
-        Log.d("TestCamera", "Попытка открыть камеру $cameraId")
         this.textureView = textureView
         if (textureView.isAvailable) {
             surfaceTexture = textureView.surfaceTexture!!
-            Log.d("TestCamera", "TextureView доступен, вызываем setupCamera")
             setupCamera(cameraId)
         } else {
             textureView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
-                override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
-                    Log.d("TestCamera", "SurfaceTexture стал доступен, вызываем setupCamera")
+                override fun onSurfaceTextureAvailable(
+                    surface: SurfaceTexture,
+                    width: Int,
+                    height: Int
+                ) {
                     surfaceTexture = surface
                     setupCamera(cameraId)
                 }
-                override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {}
+
+                override fun onSurfaceTextureSizeChanged(
+                    surface: SurfaceTexture,
+                    width: Int,
+                    height: Int
+                ) {
+                }
+
                 override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
                     closeCamera()
                     return true
                 }
+
                 override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {}
             }
         }
     }
 
-
-
     private fun setupCamera(cameraId: String) {
-        // Здесь мы гарантируем, что SurfaceTexture не null
         val surface = Surface(surfaceTexture)
 
-        // Открытие камеры и настройка сеанса
         val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         if (ActivityCompat.checkSelfPermission(
                 context,
                 Manifest.permission.CAMERA
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
+            Log.e("TestCamera", "Нет разрешения на использование камеры")
             return
         }
+
         cameraManager.openCamera(cameraId, object : CameraDevice.StateCallback() {
+            @RequiresApi(Build.VERSION_CODES.O)
             override fun onOpened(camera: CameraDevice) {
                 cameraDevice = camera
-                val captureRequestBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
-                captureRequestBuilder.addTarget(surface)
-                camera.createCaptureSession(listOf(surface), object : CameraCaptureSession.StateCallback() {
-                    override fun onConfigured(session: CameraCaptureSession) {
-                        cameraCaptureSession = session
-                        session.setRepeatingRequest(captureRequestBuilder.build(), null, null)
-                    }
+                setupMediaRecorder(cameraId)
+                val captureRequestBuilder =
+                    camera.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
 
-                    override fun onConfigureFailed(session: CameraCaptureSession) {
-                        Log.e("TestCamera", "Camera session configuration failed.")
-                    }
-                }, null)
+                captureRequestBuilder.addTarget(surface)
+
+                camera.createCaptureSession(
+                    listOf(surface),
+                    object : CameraCaptureSession.StateCallback() {
+                        override fun onConfigured(session: CameraCaptureSession) {
+                            cameraCaptureSession = session
+                            session.setRepeatingRequest(captureRequestBuilder.build(), null, null)
+                        }
+
+                        override fun onConfigureFailed(session: CameraCaptureSession) {
+                            Log.e("TestCamera", "Настройка сеанса камеры не удалась.")
+                        }
+                    },
+                    null
+                )
             }
 
             override fun onDisconnected(camera: CameraDevice) {
@@ -90,13 +108,78 @@ class TestCamera(private val context: Context) {
             }
 
             override fun onError(camera: CameraDevice, error: Int) {
-                Log.e("TestCamera", "Camera error: $error")
+                if (error == CameraDevice.StateCallback.ERROR_CAMERA_IN_USE) {
+                    Log.e(
+                        "TestCamera",
+                        "Камера занята другим приложением. Попробую снова через 2 секунды."
+                    )
+                    handler.postDelayed({ setupCamera(cameraId) }, 2000)
+                } else {
+                    Log.e("TestCamera", "Ошибка камеры: $error")
+                }
             }
         }, null)
     }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun setupMediaRecorder(name: String) {
+        val mySurface = MediaCodec.createPersistentInputSurface()
+        Log.d("TestCamera", "Начинаем настройку MediaRecorder")
+        mediaRecorder = MediaRecorder().apply {
+            setVideoSource(MediaRecorder.VideoSource.SURFACE)
+            setOutputFile(File(getOutputDirectory(), "${name}.mp4").absolutePath)
+            setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+            setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT)
+            prepare()
+        }
+
+    }
+
+
+    // Получаем директорию для сохранения
+    private fun getOutputDirectory(): File {
+        if (!::outputDirectory.isInitialized) {
+            outputDirectory = context.externalMediaDirs.firstOrNull()?.let {
+                File(it, "dual_camera_videos").apply { mkdirs() }
+            } ?: context.filesDir
+        }
+        return outputDirectory
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun startRecording(name: String) {
+
+        if (!::mediaRecorder.isInitialized) {
+            Log.e("TestCamera", "MediaRecorder не был инициализирован!")
+            return
+        }
+        mediaRecorder.start()
+    }
+
+
+    fun stopRecording(name: String) {
+        if (!::mediaRecorder.isInitialized) {
+            Log.e("TestCamera", "MediaRecorder не был инициализирован!")
+            return
+        }
+        try {
+            Log.e("TestCamera", "$name stop")
+            mediaRecorder.stop() // Останавливаем запись
+            mediaRecorder.reset() // Сбросить настройки
+            mediaRecorder.release() // Освобождение ресурсов
+            Log.d("TestCamera", "Запись успешно остановлена")
+        } catch (e: Exception) {
+            Log.e("TestCamera", "Ошибка при остановке записи: ${e.message}")
+            // В случае ошибки сбросим и освободим ресурсы
+            mediaRecorder.reset()
+            mediaRecorder.release()
+        }
+    }
+
 
     fun closeCamera() {
         cameraCaptureSession?.close()
         cameraDevice?.close()
     }
+
 }

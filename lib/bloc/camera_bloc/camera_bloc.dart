@@ -52,7 +52,6 @@ class CameraBloc extends Bloc<CameraEvent, CameraState> {
       StartPauseRecording event, Emitter<CameraState> emit) async {
     if (state.isRecording) {
       await _cameraUseCase.stopVideoAudioRecording().whenComplete(() {
-        add(SendQueryToChatGPT());
       });
     } else {
       await _cameraUseCase.startVideoAudioRecording();
