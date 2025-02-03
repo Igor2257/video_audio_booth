@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context="com.spacecompany.video_audio_booth.MainActivity">
-    <android.view.SurfaceView
-        android:id="@+id/camera_view"
+    android:orientation="vertical">
+
+    <TextureView
+        android:id="@+id/textureViewBack"
         android:layout_width="match_parent"
-        android:layout_height="200dp" />
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
-    <android.view.SurfaceView
-        android:id="@+id/front_camera_view"
+    <TextureView
+        android:id="@+id/textureViewFront"
         android:layout_width="match_parent"
-        android:layout_height="200dp" />
-
-
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 </LinearLayout>
+
