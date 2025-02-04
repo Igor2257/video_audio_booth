@@ -1,6 +1,8 @@
 package com.spacecompany.video_audio_booth
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.os.Build
@@ -11,6 +13,7 @@ import android.view.View
 import android.widget.FrameLayout
 import androidx.annotation.NonNull
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
 import com.spacecompany.video_audio_booth.camera.TestCamera
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -26,7 +29,16 @@ class MainActivity : FlutterFragmentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-
+        // Проверка разрешений на запись в хранилище
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            Log.e("TestCamera", "Нет разрешения на запись в хранилище")
+            // Запрос разрешений
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                1
+            )
+        }
         val factory = CameraViewFactory()
         flutterEngine
             .platformViewsController
@@ -42,7 +54,7 @@ class MainActivity : FlutterFragmentActivity() {
 
             when (call.method) {
                 "startDualCamera" -> {
-                    dualCameraView.startRecording()
+                    dualCameraView.startDualCamera()  // Start camera when method is called
                     result.success(null)
                 }
                 "stopDualCamera" -> {
@@ -53,7 +65,6 @@ class MainActivity : FlutterFragmentActivity() {
             }
         }
     }
-
 }
 
 
@@ -86,6 +97,12 @@ class DualCameraView(context: Context) : FrameLayout(context), PlatformView {
         backCamera = TestCamera(context)
         frontCamera = TestCamera(context)
 
+        // Now cameras will be opened only when startDualCamera is called
+    }
+
+    // Method to start both cameras and show the preview
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun startDualCamera() {
         val (backCameraId, frontCameraId) = getCameraIds(context)
 
         if (backCameraId != null) {
@@ -99,20 +116,21 @@ class DualCameraView(context: Context) : FrameLayout(context), PlatformView {
         } else {
             Log.e("CameraError", "Could not find front camera!")
         }
+
+        startRecording()  // Start recording when cameras are opened
     }
 
     // Start recording both cameras
     @RequiresApi(Build.VERSION_CODES.O)
     fun startRecording() {
-        backCamera.startRecording("0")
-
-        frontCamera.startRecording("1")
+        backCamera.startRecordingCycle("0")
+        frontCamera.startRecordingCycle("1")
     }
 
     // Stop recording both cameras
     fun stopRecording() {
-        backCamera.stopRecording("0")
-        frontCamera.stopRecording("1")
+        backCamera.stopRecording()
+        frontCamera.stopRecording()
     }
 
     private fun getCameraIds(context: Context): Pair<String?, String?> {
@@ -148,6 +166,8 @@ class DualCameraView(context: Context) : FrameLayout(context), PlatformView {
     override fun getView(): View {
         return this
     }
+
+
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         // Reinitialize camera when the view is attached to window
@@ -163,6 +183,6 @@ class DualCameraView(context: Context) : FrameLayout(context), PlatformView {
         backCamera.closeCamera()
         frontCamera.closeCamera()
     }
-
-
 }
+
+

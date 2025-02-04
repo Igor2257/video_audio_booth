@@ -7,7 +7,6 @@ import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
-import android.media.MediaCodec
 import android.media.MediaRecorder
 import android.os.Build
 import android.os.Handler
@@ -19,8 +18,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import java.io.File
 
-
-class TestCamera(private val context: Context) {
+class TestCamera(private val context: Context)  {
 
     private var cameraDevice: CameraDevice? = null
     private var cameraCaptureSession: CameraCaptureSession? = null
@@ -30,6 +28,8 @@ class TestCamera(private val context: Context) {
     private lateinit var outputDirectory: File
 
     private val handler = Handler(Looper.getMainLooper())
+    private var isRecording = false
+    private var videoStartTime = System.currentTimeMillis()
 
     fun openCamera(cameraId: String, textureView: TextureView) {
         this.textureView = textureView
@@ -38,21 +38,12 @@ class TestCamera(private val context: Context) {
             setupCamera(cameraId)
         } else {
             textureView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
-                override fun onSurfaceTextureAvailable(
-                    surface: SurfaceTexture,
-                    width: Int,
-                    height: Int
-                ) {
+                override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
                     surfaceTexture = surface
                     setupCamera(cameraId)
                 }
 
-                override fun onSurfaceTextureSizeChanged(
-                    surface: SurfaceTexture,
-                    width: Int,
-                    height: Int
-                ) {
-                }
+                override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {}
 
                 override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
                     closeCamera()
@@ -65,8 +56,7 @@ class TestCamera(private val context: Context) {
     }
 
     private fun setupCamera(cameraId: String) {
-        val previewSurface = Surface(surfaceTexture)  // For preview
-
+        val previewSurface = Surface(surfaceTexture)
 
         val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
@@ -78,8 +68,8 @@ class TestCamera(private val context: Context) {
             @RequiresApi(Build.VERSION_CODES.O)
             override fun onOpened(camera: CameraDevice) {
                 cameraDevice = camera
-                setupMediaRecorder(cameraId)
-                val recorderSurface = mediaRecorder.surface  // For recording
+                setupMediaRecorder()
+                val recorderSurface = mediaRecorder.surface
 
                 val captureRequestBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
                 captureRequestBuilder.addTarget(previewSurface)
@@ -112,22 +102,6 @@ class TestCamera(private val context: Context) {
         }, null)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun setupMediaRecorder(name: String) {
-        val mySurface = MediaCodec.createPersistentInputSurface()
-        Log.d("TestCamera", "Начинаем настройку MediaRecorder")
-        mediaRecorder = MediaRecorder().apply {
-            setVideoSource(MediaRecorder.VideoSource.SURFACE)
-            setOutputFile(File(getOutputDirectory(), "${System.currentTimeMillis()}.mp4").absolutePath)
-            setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-            setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT)
-            prepare()
-        }
-
-    }
-
-
-    // Получаем директорию для сохранения
     private fun getOutputDirectory(): File {
         if (!::outputDirectory.isInitialized) {
             outputDirectory = context.externalMediaDirs.firstOrNull()?.let {
@@ -138,47 +112,92 @@ class TestCamera(private val context: Context) {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun startRecording(name: String) {
+    private fun setupMediaRecorder() {
+        // Убедитесь, что путь для записи существует
+        val outputFile = File(getOutputDirectory(), "${System.currentTimeMillis()}.mp4").absolutePath
+        Log.d("TestCamera", "Начинаем настройку MediaRecorder для файла: $outputFile")
 
-        if (!::mediaRecorder.isInitialized) {
-            Log.e("TestCamera", "MediaRecorder не был инициализирован!")
-            return
+        mediaRecorder = MediaRecorder().apply {
+            reset()
+            setVideoSource(MediaRecorder.VideoSource.SURFACE)
+            setOutputFile(outputFile)
+            setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+            setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT)
+            prepare()
         }
-        mediaRecorder.start()
+
     }
 
-
-    fun stopRecording(name: String) {
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun startRecording() {
         if (!::mediaRecorder.isInitialized) {
             Log.e("TestCamera", "MediaRecorder не был инициализирован!")
+            handler.postDelayed({ startRecording() }, 1000)
             return
         }
-        try {
-            mediaRecorder.stop()
-            mediaRecorder.reset()
-            mediaRecorder.release()
-            Log.d("TestCamera", "Запись успешно остановлена")
-        } catch (e: Exception) {
-            Log.e("TestCamera", "Ошибка при остановке записи: ${e.message}")
-            mediaRecorder.reset()
-            mediaRecorder.release()
+        if (!isRecording) {
+            try {
+                mediaRecorder.start()
+                isRecording = true
+                videoStartTime = System.currentTimeMillis() // Убедитесь, что это обновляется при запуске записи
+                Log.d("TestCamera", "Запись началась")
+            } catch (e: Exception) {
+                Log.e("TestCamera", "Ошибка при начале записи: ${e.message}")
+                handler.postDelayed({ startRecording() }, 1000)
+            }
         }
 
-        // Safely close the camera and stop using it before restarting the camera session
-        closeCamera()
-
-        // Make sure the camera is fully released and not in use
-        handler.postDelayed({
-            setupCamera(name)  // Call after ensuring camera is closed properly
-        }, 100)  // Slight delay to ensure that camera device is released
     }
 
+    fun stopRecording() {
+        if (isRecording) {
+            try {
+                Thread.sleep(100)  // Добавление задержки перед остановкой записи
+
+                mediaRecorder.stop()
+                mediaRecorder.reset()
+                mediaRecorder.release()
+                isRecording = false
+                Log.d("TestCamera", "Запись успешно остановлена")
+            } catch (e: IllegalStateException) {
+                Log.e("TestCamera", "Ошибка при остановке записи: ${e.message}")
+            } catch (e: Exception) {
+                Log.e("TestCamera", "Неизвестная ошибка при остановке записи: ${e.message}")
+                e.printStackTrace()
+            }
+        } else {
+            Log.d("TestCamera", "Запись не была начата или уже остановлена.")
+        }
+
+    }
 
 
 
     fun closeCamera() {
         cameraCaptureSession?.close()
         cameraDevice?.close()
+    }
+
+    // Функция для циклической записи
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun startRecordingCycle(name:String) {
+        startRecording()
+        val recordingRunnable = object : Runnable {
+            @RequiresApi(Build.VERSION_CODES.O)
+            override fun run() {
+                Log.d("TestCamera",(isRecording).toString())
+                Log.d("TestCamera",(System.currentTimeMillis()).toString())
+                Log.d("TestCamera",(isRecording && (System.currentTimeMillis() - videoStartTime) >= 10000).toString())
+                if (isRecording && (System.currentTimeMillis() - videoStartTime) >= 10000) {
+                    stopRecording()
+                    setupCamera(name)
+                    // Добавьте задержку для гарантии, что MediaRecorder освободился
+                    startRecording()  // Start a new recording
+                }
+                handler.postDelayed(this, 1000)
+            }
+        }
+        handler.post(recordingRunnable)
     }
 
 }
