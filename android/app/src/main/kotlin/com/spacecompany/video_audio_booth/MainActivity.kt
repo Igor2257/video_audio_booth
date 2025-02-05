@@ -21,6 +21,7 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.StandardMessageCodec
 import io.flutter.plugin.platform.PlatformView
 import io.flutter.plugin.platform.PlatformViewFactory
+import java.io.File
 
 class MainActivity : FlutterFragmentActivity() {
     private val CHANNEL = "com.spacecompany.video_audio_booth"
@@ -29,7 +30,6 @@ class MainActivity : FlutterFragmentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        // Проверка разрешений на запись в хранилище
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             Log.e("TestCamera", "Нет разрешения на запись в хранилище")
             // Запрос разрешений
@@ -39,6 +39,13 @@ class MainActivity : FlutterFragmentActivity() {
                 1
             )
         }
+        val assetManager = applicationContext.assets
+        val files = assetManager.list("")?.flatMap { dir ->
+            assetManager.list(dir)?.map { "$dir/$it" } ?: listOf(dir)
+        }
+        Log.d("Assets", "Files: ${files?.joinToString(", ")}")
+
+
         val factory = CameraViewFactory()
         flutterEngine
             .platformViewsController
@@ -73,6 +80,7 @@ class CameraViewFactory : PlatformViewFactory(StandardMessageCodec.INSTANCE) {
 
     override fun create(context: Context, id: Int, args: Any?): PlatformView {
         val view = DualCameraView(context)
+        Log.d("123","init")
         lastView = view // Запоминаем созданный экземпляр
         return view
     }
@@ -85,17 +93,19 @@ class DualCameraView(context: Context) : FrameLayout(context), PlatformView {
     private val textureViewFront: TextureView
     private lateinit var backCamera: TestCamera
     private lateinit var frontCamera: TestCamera
-
+    private lateinit var outputDirectory: File
     init {
         val inflater = LayoutInflater.from(context)
         val view = inflater.inflate(R.layout.camera_view, this, false)
         addView(view) // Add layout to the current FrameLayout
+        outputDirectory= getOutputDirectory()
 
         textureViewBack = view.findViewById(R.id.textureViewBack)
         textureViewFront = view.findViewById(R.id.textureViewFront)
 
-        backCamera = TestCamera(context)
-        frontCamera = TestCamera(context)
+        backCamera = TestCamera(context,outputDirectory.absolutePath,"324324","back","1221")
+        frontCamera = TestCamera(context,outputDirectory.absolutePath,"432324","front","1221")
+
 
         // Now cameras will be opened only when startDualCamera is called
     }
@@ -182,6 +192,14 @@ class DualCameraView(context: Context) : FrameLayout(context), PlatformView {
         // Close cameras when the view is detached from window
         backCamera.closeCamera()
         frontCamera.closeCamera()
+    }
+    private fun getOutputDirectory(): File {
+        if (!::outputDirectory.isInitialized) {
+            outputDirectory = context.externalMediaDirs.firstOrNull()?.let {
+                File(it, "dual_camera_videos").apply { mkdirs() }
+            } ?: context.filesDir
+        }
+        return outputDirectory
     }
 }
 

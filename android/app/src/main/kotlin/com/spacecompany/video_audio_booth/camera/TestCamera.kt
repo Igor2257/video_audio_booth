@@ -16,20 +16,32 @@ import android.view.Surface
 import android.view.TextureView
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
+import com.spacecompany.video_audio_booth.services.DropboxClient
 import java.io.File
 
-class TestCamera(private val context: Context)  {
+
+class TestCamera(
+    private val context: Context,
+    private val localPath: String,
+    private val uuid: String,
+    private val type: String,
+    private val occasionId: String
+) {
 
     private var cameraDevice: CameraDevice? = null
     private var cameraCaptureSession: CameraCaptureSession? = null
     private lateinit var surfaceTexture: SurfaceTexture
     private lateinit var textureView: TextureView
     private lateinit var mediaRecorder: MediaRecorder
-    private lateinit var outputDirectory: File
+
 
     private val handler = Handler(Looper.getMainLooper())
     private var isRecording = false
     private var videoStartTime = System.currentTimeMillis()
+    private var fileName = "${System.currentTimeMillis()}-${type}.mp4"
+
+    // ✅ Правильное объявление и инициализация DropboxClient
+    private val dropboxClient = DropboxClient(context, localPath, uuid, occasionId)
 
     fun openCamera(cameraId: String, textureView: TextureView) {
         this.textureView = textureView
@@ -38,12 +50,21 @@ class TestCamera(private val context: Context)  {
             setupCamera(cameraId)
         } else {
             textureView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
-                override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
+                override fun onSurfaceTextureAvailable(
+                    surface: SurfaceTexture,
+                    width: Int,
+                    height: Int
+                ) {
                     surfaceTexture = surface
                     setupCamera(cameraId)
                 }
 
-                override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {}
+                override fun onSurfaceTextureSizeChanged(
+                    surface: SurfaceTexture,
+                    width: Int,
+                    height: Int
+                ) {
+                }
 
                 override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
                     closeCamera()
@@ -59,7 +80,11 @@ class TestCamera(private val context: Context)  {
         val previewSurface = Surface(surfaceTexture)
 
         val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.CAMERA
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
             Log.e("TestCamera", "Нет разрешения на использование камеры")
             return
         }
@@ -71,20 +96,25 @@ class TestCamera(private val context: Context)  {
                 setupMediaRecorder()
                 val recorderSurface = mediaRecorder.surface
 
-                val captureRequestBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
+                val captureRequestBuilder =
+                    camera.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
                 captureRequestBuilder.addTarget(previewSurface)
                 captureRequestBuilder.addTarget(recorderSurface)
 
-                camera.createCaptureSession(listOf(previewSurface, recorderSurface), object : CameraCaptureSession.StateCallback() {
-                    override fun onConfigured(session: CameraCaptureSession) {
-                        cameraCaptureSession = session
-                        session.setRepeatingRequest(captureRequestBuilder.build(), null, null)
-                    }
+                camera.createCaptureSession(
+                    listOf(previewSurface, recorderSurface),
+                    object : CameraCaptureSession.StateCallback() {
+                        override fun onConfigured(session: CameraCaptureSession) {
+                            cameraCaptureSession = session
+                            session.setRepeatingRequest(captureRequestBuilder.build(), null, null)
+                        }
 
-                    override fun onConfigureFailed(session: CameraCaptureSession) {
-                        Log.e("TestCamera", "Настройка сеанса камеры не удалась.")
-                    }
-                }, null)
+                        override fun onConfigureFailed(session: CameraCaptureSession) {
+                            Log.e("TestCamera", "Настройка сеанса камеры не удалась.")
+                        }
+                    },
+                    null
+                )
             }
 
             override fun onDisconnected(camera: CameraDevice) {
@@ -93,7 +123,10 @@ class TestCamera(private val context: Context)  {
 
             override fun onError(camera: CameraDevice, error: Int) {
                 if (error == CameraDevice.StateCallback.ERROR_CAMERA_IN_USE) {
-                    Log.e("TestCamera", "Камера занята другим приложением. Попробую снова через 2 секунды.")
+                    Log.e(
+                        "TestCamera",
+                        "Камера занята другим приложением. Попробую снова через 2 секунды."
+                    )
                     handler.postDelayed({ setupCamera(cameraId) }, 2000)
                 } else {
                     Log.e("TestCamera", "Ошибка камеры: $error")
@@ -102,19 +135,12 @@ class TestCamera(private val context: Context)  {
         }, null)
     }
 
-    private fun getOutputDirectory(): File {
-        if (!::outputDirectory.isInitialized) {
-            outputDirectory = context.externalMediaDirs.firstOrNull()?.let {
-                File(it, "dual_camera_videos").apply { mkdirs() }
-            } ?: context.filesDir
-        }
-        return outputDirectory
-    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun setupMediaRecorder() {
         // Убедитесь, что путь для записи существует
-        val outputFile = File(getOutputDirectory(), "${System.currentTimeMillis()}.mp4").absolutePath
+        fileName = "${System.currentTimeMillis()}-${type}.mp4"
+        val outputFile = File(localPath, fileName).absolutePath
         Log.d("TestCamera", "Начинаем настройку MediaRecorder для файла: $outputFile")
 
         mediaRecorder = MediaRecorder().apply {
@@ -139,7 +165,8 @@ class TestCamera(private val context: Context)  {
             try {
                 mediaRecorder.start()
                 isRecording = true
-                videoStartTime = System.currentTimeMillis() // Убедитесь, что это обновляется при запуске записи
+                videoStartTime =
+                    System.currentTimeMillis() // Убедитесь, что это обновляется при запуске записи
                 Log.d("TestCamera", "Запись началась")
             } catch (e: Exception) {
                 Log.e("TestCamera", "Ошибка при начале записи: ${e.message}")
@@ -158,6 +185,7 @@ class TestCamera(private val context: Context)  {
                 mediaRecorder.reset()
                 mediaRecorder.release()
                 isRecording = false
+                dropboxClient.uploadFile(fileName);
                 Log.d("TestCamera", "Запись успешно остановлена")
             } catch (e: IllegalStateException) {
                 Log.e("TestCamera", "Ошибка при остановке записи: ${e.message}")
@@ -172,7 +200,6 @@ class TestCamera(private val context: Context)  {
     }
 
 
-
     fun closeCamera() {
         cameraCaptureSession?.close()
         cameraDevice?.close()
@@ -180,14 +207,17 @@ class TestCamera(private val context: Context)  {
 
     // Функция для циклической записи
     @RequiresApi(Build.VERSION_CODES.O)
-    fun startRecordingCycle(name:String) {
+    fun startRecordingCycle(name: String) {
         startRecording()
         val recordingRunnable = object : Runnable {
             @RequiresApi(Build.VERSION_CODES.O)
             override fun run() {
-                Log.d("TestCamera",(isRecording).toString())
-                Log.d("TestCamera",(System.currentTimeMillis()).toString())
-                Log.d("TestCamera",(isRecording && (System.currentTimeMillis() - videoStartTime) >= 10000).toString())
+                Log.d("TestCamera", (isRecording).toString())
+                Log.d("TestCamera", (System.currentTimeMillis()).toString())
+                Log.d(
+                    "TestCamera",
+                    (isRecording && (System.currentTimeMillis() - videoStartTime) >= 10000).toString()
+                )
                 if (isRecording && (System.currentTimeMillis() - videoStartTime) >= 10000) {
                     stopRecording()
                     setupCamera(name)
