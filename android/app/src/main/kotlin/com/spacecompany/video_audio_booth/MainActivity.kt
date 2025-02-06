@@ -30,7 +30,11 @@ class MainActivity : FlutterFragmentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
             Log.e("TestCamera", "Нет разрешения на запись в хранилище")
             // Запрос разрешений
             ActivityCompat.requestPermissions(
@@ -64,10 +68,12 @@ class MainActivity : FlutterFragmentActivity() {
                     dualCameraView.startDualCamera()  // Start camera when method is called
                     result.success(null)
                 }
+
                 "stopDualCamera" -> {
                     dualCameraView.stopRecording()
                     result.success(null)
                 }
+
                 else -> result.notImplemented()
             }
         }
@@ -80,7 +86,7 @@ class CameraViewFactory : PlatformViewFactory(StandardMessageCodec.INSTANCE) {
 
     override fun create(context: Context, id: Int, args: Any?): PlatformView {
         val view = DualCameraView(context)
-        Log.d("123","init")
+        Log.d("123", "init")
         lastView = view // Запоминаем созданный экземпляр
         return view
     }
@@ -94,17 +100,31 @@ class DualCameraView(context: Context) : FrameLayout(context), PlatformView {
     private lateinit var backCamera: TestCamera
     private lateinit var frontCamera: TestCamera
     private lateinit var outputDirectory: File
+
     init {
         val inflater = LayoutInflater.from(context)
         val view = inflater.inflate(R.layout.camera_view, this, false)
         addView(view) // Add layout to the current FrameLayout
-        outputDirectory= getOutputDirectory()
+        outputDirectory = getOutputDirectory()
+        val screenWidth = resources.displayMetrics.widthPixels
+// Ширина переднего TextureView (1/4 от ширины экрана)
+        val viewWidth = screenWidth / 4
+// Высота переднего TextureView (соотношение 3:4, но пропорция высоты будет в пределах экрана)
+        val viewHeight = screenWidth / 3
 
         textureViewBack = view.findViewById(R.id.textureViewBack)
         textureViewFront = view.findViewById(R.id.textureViewFront)
 
-        backCamera = TestCamera(context,outputDirectory.absolutePath,"324324","back","1221")
-        frontCamera = TestCamera(context,outputDirectory.absolutePath,"432324","front","1221")
+// Устанавливаем параметры для textureViewFront
+        val layoutParams = textureViewFront.layoutParams
+        layoutParams.width = viewWidth
+        layoutParams.height = viewHeight
+
+        textureViewFront.layoutParams = layoutParams
+
+
+        backCamera = TestCamera(context, outputDirectory.absolutePath, "324324", "back", "1221")
+        frontCamera = TestCamera(context, outputDirectory.absolutePath, "432324", "front", "1221")
 
 
         // Now cameras will be opened only when startDualCamera is called
@@ -156,7 +176,8 @@ class DualCameraView(context: Context) : FrameLayout(context), PlatformView {
                 frontCameraId = cameraId
                 Log.d("CameraFilter", "Front camera selected: $cameraId")
             } else if (lensFacing == CameraCharacteristics.LENS_FACING_BACK) {
-                val capabilities = characteristics.get(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES)
+                val capabilities =
+                    characteristics.get(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES)
                 if (capabilities?.contains(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_BACKWARD_COMPATIBLE) == true) {
                     if (backCameraId == null) {
                         backCameraId = cameraId
@@ -193,6 +214,7 @@ class DualCameraView(context: Context) : FrameLayout(context), PlatformView {
         backCamera.closeCamera()
         frontCamera.closeCamera()
     }
+
     private fun getOutputDirectory(): File {
         if (!::outputDirectory.isInitialized) {
             outputDirectory = context.externalMediaDirs.firstOrNull()?.let {
